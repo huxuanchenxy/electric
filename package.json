@@ -1,0 +1,47 @@
+{
+    "name": "vue3_20240529elplus",
+    "private": true,
+    "version": "0.0.0",
+    "type": "module",
+    "scripts": {
+        "dev": "vite",
+        "build": "vite build",
+        "preview": "vite preview",
+        "devtest": "vite --mode test",
+        "buildtest": "vite build --mode test",
+        "previewtest": "vite preview --mode test"
+    },
+    "dependencies": {
+        "@element-plus/icons-vue": "^2.3.1",
+        "@vueuse/core": "^13.1.0",
+        "axios": "^1.7.2",
+        "element-plus": "^2.7.3",
+        "fabric": "^5.5.2",
+        "fabric-with-erasing": "^1.0.1",
+        "geometric": "^2.5.5",
+        "html2canvas": "^1.4.1",
+        "konva": "^9.3.20",
+        "md5": "^2.3.0",
+        "moment": "^2.30.1",
+        "nprogress": "^0.2.0",
+        "pinia": "^2.2.2",
+        "pinia-plugin-persist": "^1.0.0",
+        "unplugin-auto-import": "^0.18.2",
+        "unplugin-vue-components": "^0.27.4",
+        "uuid": "^11.1.0",
+        "vue": "^3.4.21",
+        "vue-router": "^4.3.2",
+        "vue3_20240529elplus": "file:",
+        "vuedraggable": "^4.1.0",
+        "vuex": "^4.1.0"
+    },
+    "devDependencies": {
+        "@vitejs/plugin-vue": "^5.0.4",
+        "mockjs": "^1.1.0",
+        "sass": "^1.83.0",
+        "sass-embedded": "^1.85.0",
+        "vite": "^5.2.0",
+        "vite-plugin-mock": "^3.0.2",
+        "vite-plugin-svg-icons": "^2.0.1"
+    }
+}

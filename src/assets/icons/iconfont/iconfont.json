@@ -1,0 +1,79 @@
+{
+  "id": "4862877",
+  "name": "RBAC",
+  "font_family": "iconfont",
+  "css_prefix_text": "icon-",
+  "description": "",
+  "glyphs": [
+    {
+      "icon_id": "2470366",
+      "name": "职位管理",
+      "font_class": "zhiweiguanli",
+      "unicode": "e658",
+      "unicode_decimal": 58968
+    },
+    {
+      "icon_id": "12820193",
+      "name": "组织架构管理",
+      "font_class": "zuzhijiagouguanli",
+      "unicode": "e635",
+      "unicode_decimal": 58933
+    },
+    {
+      "icon_id": "1853859",
+      "name": "SPU管理",
+      "font_class": "SPUguanli",
+      "unicode": "e673",
+      "unicode_decimal": 58995
+    },
+    {
+      "icon_id": "10213489",
+      "name": "角色管理",
+      "font_class": "jiaoseguanli",
+      "unicode": "e618",
+      "unicode_decimal": 58904
+    },
+    {
+      "icon_id": "12495267",
+      "name": "属性管理",
+      "font_class": "shuxingguanli",
+      "unicode": "e765",
+      "unicode_decimal": 59237
+    },
+    {
+      "icon_id": "16326926",
+      "name": "SKU管理",
+      "font_class": "SKUguanli",
+      "unicode": "e751",
+      "unicode_decimal": 59217
+    },
+    {
+      "icon_id": "29448654",
+      "name": "数字大屏",
+      "font_class": "shuzidaping",
+      "unicode": "e62f",
+      "unicode_decimal": 58927
+    },
+    {
+      "icon_id": "31425969",
+      "name": "系统管理",
+      "font_class": "xitongguanli",
+      "unicode": "e611",
+      "unicode_decimal": 58897
+    },
+    {
+      "icon_id": "34579037",
+      "name": "品牌管理",
+      "font_class": "pinpaiguanli",
+      "unicode": "e663",
+      "unicode_decimal": 58979
+    },
+    {
+      "icon_id": "11834353",
+      "name": "企业使命",
+      "font_class": "qiyeshiming",
+      "unicode": "e667",
+      "unicode_decimal": 58983
+    }
+  ]
+}
