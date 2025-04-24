@@ -81,10 +81,52 @@
           <template #item="{ element, index }">
             <div class="draggable-item">
               <el-icon class="drag-handle"><Menu /></el-icon>
-              <span class="item-content">
+              <div class="item-content">
                 <span class="item-index">{{ index + 1 }}.</span>
-                <span class="item-name">{{ element.name }}</span>
-              </span>
+                
+                <!-- 显示模式 -->
+                <span v-if="!element.editing" class="item-name">
+                  {{ element.name }}
+                </span>
+                
+                <!-- 编辑模式 -->
+                <el-input
+                  v-else
+                  v-model="element.editName"
+                  size="small"
+                  @keyup.enter="confirmEdit(element)"
+                  style="flex: 1; margin-right: 10px;"
+                  class="edit-input"
+                />
+                
+                <!-- 操作按钮 -->
+                <div class="item-actions">
+                  <el-button
+                    v-if="!element.editing"
+                    type="text"
+                    size="small"
+                    @click="startEdit(element)"
+                  >
+                    编辑
+                  </el-button>
+                  <template v-else>
+                    <el-button
+                      type="text"
+                      size="small"
+                      @click="confirmEdit(element)"
+                    >
+                      确认
+                    </el-button>
+                    <el-button
+                      type="text"
+                      size="small"
+                      @click="cancelEdit(element)"
+                    >
+                      取消
+                    </el-button>
+                  </template>
+                </div>
+              </div>
             </div>
           </template>
         </draggable>
@@ -122,6 +164,7 @@ import { ref, onMounted } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { Upload, Download, Check, Menu } from "@element-plus/icons-vue";
 import draggable from "vuedraggable";
+import api from "@/http/energyApi.js";
 // 模拟电厂数据
 const plants = ref([
   "平山电厂",
@@ -168,11 +211,14 @@ const progressStatus = ref("");
 const loadingText = ref("处理中，请稍候...");
 
 // 页面加载时获取电厂列表
-onMounted(() => {
+onMounted( async() => {
   // 模拟API调用
-  setTimeout(() => {
-    console.log("加载电厂列表");
-  }, 500);
+  // setTimeout(() => {
+  //   console.log("加载电厂列表");
+    
+  // }, 500);
+  let res = await api.nox_company();
+    console.log("res……", res);
 });
 
 // 加载电厂数据
@@ -214,6 +260,8 @@ const generateMockData = () => {
   editablePlantData.value = tableHeaders.value.map((item, index) => ({
     id: index + 1,
     name: item,
+    editing: false, 
+    editName: ''
   }));
 
   setTimeout(() => {
@@ -222,6 +270,26 @@ const generateMockData = () => {
   }, 500);
 };
 
+// 开始编辑
+const startEdit = (item) => {
+  item.editing = true
+  item.editName = item.name
+}
+
+// 确认编辑
+const confirmEdit = (item) => {
+  if (!item.editName.trim()) {
+    ElMessage.warning('名称不能为空')
+    return
+  }
+  item.name = item.editName
+  item.editing = false
+}
+
+// 取消编辑
+const cancelEdit = (item) => {
+  item.editing = false
+}
 // 导入CSV
 const importCSV = () => {
   if (!selectedPlant.value) {
@@ -414,7 +482,7 @@ h2 {
 .draggable-item {
   display: flex;
   align-items: center;
-  padding: 12px 15px;
+  padding: 8px 15px;
   margin: 5px 0;
   background-color: #fff;
   border: 1px solid #ebeef5;
@@ -457,15 +525,34 @@ h2 {
 
 /* 拖拽时的样式 */
 .sortable-chosen {
-  background-color: #f5f7fa;
+  background-color: #b0b1b3;
 }
 
 .sortable-ghost {
   opacity: 0.5;
-  background: #c8ebfb;
+  background: #a1d4ec;
 }
 
-:deep(.disabled-drag .drag-handle) {
-  cursor: not-allowed !important;
+
+
+.item-content {
+  display: flex;
+  align-items: center; /* 垂直居中 */
+  width: 100%;
+  gap: 8px; /* 元素之间的间距 */
+}
+
+
+
+
+
+.edit-input {
+  flex: 1; /* 输入框占据剩余空间 */
+  margin-right: 10px;
+}
+
+.item-actions {
+  margin-left: auto; /* 关键：使操作按钮靠右 */
+  white-space: nowrap; /* 防止按钮换行 */
 }
 </style>
