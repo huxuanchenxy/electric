@@ -19,11 +19,11 @@
       </div>
     </el-dialog>
 
-    <el-page-header title="返回" @back="goBack" class="page-header">
+    <!-- <el-page-header title="" class="page-header">
       <template #content>
         <h1>下拉单选区域</h1>
       </template>
-    </el-page-header>
+    </el-page-header> -->
 
     <!-- 下拉选择电厂 -->
     <div class="select-area">
@@ -32,6 +32,7 @@
         placeholder="请选择发电厂"
         @change="loadPlantData"
         clearable
+        filterable
         style="width: 300px"
       >
         <el-option
@@ -47,49 +48,17 @@
       <!-- 原始列表区域 -->
       <el-card class="original-list">
         <template #header>
-          <h2>原始列表区域</h2>
-        </template>
-        <div class="scrollable-table">
-          <el-table
-            :data="plantData"
-            border
-            stripe
-            height="400px"
-            style="width: 100%"
-          >
-            <el-table-column
-              type="index"
-              label="序号"
-              width="60"
-              align="center"
-            />
-            <el-table-column
-              v-for="(header, index) in tableHeaders"
-              :key="index"
-              :prop="`col${index}`"
-              :label="header"
-              min-width="180"
-            />
-          </el-table>
-        </div>
-      </el-card>
-
-      <!-- 可变更列表区域 -->
-      <!-- 可变更列表区域 -->
-      <el-card class="editable-list">
-        <template #header>
-          <h2>可变更列表区域</h2>
+          <h2>变更前的列</h2>
         </template>
         <div class="scrollable-list">
           <draggable
-            v-model="editablePlantData"
+            v-model="plantData"
             item-key="id"
-            handle=".drag-handle"
-            @end="onDragEnd"
+            :class="{ 'disabled-drag': isDraggableDisabled }"
+            :disabled="isDraggableDisabled"
           >
             <template #item="{ element, index }">
-              <div class="draggable-item">
-                <el-icon class="drag-handle"><Menu /></el-icon>
+              <div class="draggable-item-disabled">
                 <span class="item-index">{{ index + 1 }}.</span>
                 <span class="item-name">{{ element.name }}</span>
               </div>
@@ -97,6 +66,30 @@
           </draggable>
         </div>
       </el-card>
+
+      <!-- 可变更列表区域 -->
+      <el-card class="editable-list">
+      <template #header>
+        <h2>变更后的列</h2>
+      </template>
+      <div class="scrollable-list">
+        <draggable 
+          v-model="editablePlantData" 
+          item-key="id"
+          @end="onDragEnd"
+        >
+          <template #item="{ element, index }">
+            <div class="draggable-item">
+              <el-icon class="drag-handle"><Menu /></el-icon>
+              <span class="item-content">
+                <span class="item-index">{{ index + 1 }}.</span>
+                <span class="item-name">{{ element.name }}</span>
+              </span>
+            </div>
+          </template>
+        </draggable>
+      </div>
+    </el-card>
     </div>
 
     <!-- 按钮区域 -->
@@ -111,7 +104,7 @@
       </el-button>
       <el-button type="warning" @click="confirmChanges">
         <el-icon class="el-icon--left"><Check /></el-icon>
-        确认
+        保存
       </el-button>
       <input
         type="file"
@@ -137,6 +130,8 @@ const plants = ref([
   "吴泾电厂",
   "漕泾电厂",
 ]);
+
+const isDraggableDisabled = ref(true);
 const selectedPlant = ref("");
 
 // 模拟电厂业务数据
@@ -148,6 +143,18 @@ const tableHeaders = ref([
   "3#机组反应器入口02含量",
   "3#机组反应器入口烟气流量(皮托管)",
   "LDC发电机实发功率",
+  "Axyz",
+  "Aklm",
+  "Anop",
+  "Aqrs",
+  "Atuv",
+  "Awxy",
+  "Azab",
+  "Acde",
+  "Afgh",
+  "Aijk",
+  "Almn",
+
 ]);
 
 const plantData = ref([]);
@@ -189,16 +196,21 @@ const loadPlantData = () => {
 
 const generateMockData = () => {
   // 生成模拟数据
-  const mockData = [];
-  for (let i = 0; i < 50; i++) {
-    const row = {};
-    tableHeaders.value.forEach((header, index) => {
-      row[`col${index}`] = `${header}数据${i + 1}`;
-    });
-    mockData.push(row);
-  }
+  // const mockData = [];
+  // for (let i = 0; i < 50; i++) {
+  //   const row = {};
+  //   tableHeaders.value.forEach((header, index) => {
+  //     row[`col${index}`] = `${header}数据${i + 1}`;
+  //   });
+  //   mockData.push(row);
+  // }
 
-  plantData.value = mockData;
+  // plantData.value = mockData;
+  plantData.value = tableHeaders.value.map((item, index) => ({
+    id: index + 1,
+    name: item,
+  }));
+
   editablePlantData.value = tableHeaders.value.map((item, index) => ({
     id: index + 1,
     name: item,
@@ -328,9 +340,6 @@ const confirmChanges = async () => {
   }
 };
 
-const goBack = () => {
-  console.log("返回上一页");
-};
 
 // 拖拽结束事件
 const onDragEnd = () => {
@@ -398,7 +407,7 @@ h2 {
 
 /* 可拖动列表样式 */
 .scrollable-list {
-  max-height: 400px;
+  max-height: 600px;
   overflow-y: auto;
 }
 
@@ -412,6 +421,17 @@ h2 {
   border-radius: 4px;
   transition: all 0.3s;
   cursor: move;
+}
+
+.draggable-item-disabled {
+  display: flex;
+  align-items: center;
+  padding: 12px 15px;
+  margin: 5px 0;
+  background-color: #fff;
+  border: 1px solid #ebeef5;
+  border-radius: 4px;
+  transition: all 0.3s;
 }
 
 .draggable-item:hover {
@@ -443,5 +463,9 @@ h2 {
 .sortable-ghost {
   opacity: 0.5;
   background: #c8ebfb;
+}
+
+:deep(.disabled-drag .drag-handle) {
+  cursor: not-allowed !important;
 }
 </style>
