@@ -37,9 +37,9 @@
       >
         <el-option
           v-for="plant in plants"
-          :key="plant"
-          :label="plant"
-          :value="plant"
+          :key="plant.dictCode"
+          :label="plant.dictLabel"
+          :value="plant.dictValue"
         />
       </el-select>
     </div>
@@ -61,6 +61,11 @@
               <div class="draggable-item-disabled">
                 <span class="item-index">{{ index + 1 }}.</span>
                 <span class="item-name">{{ element.name }}</span>
+                <el-switch
+                    v-model="element.active"
+                    disabled
+                    >
+                </el-switch>
               </div>
             </template>
           </draggable>
@@ -125,6 +130,9 @@
                       取消
                     </el-button>
                   </template>
+                  <el-switch
+                    v-model="element.active">
+                  </el-switch>
                 </div>
               </div>
             </div>
@@ -167,11 +175,6 @@ import draggable from "vuedraggable";
 import api from "@/http/energyApi.js";
 // 模拟电厂数据
 const plants = ref([
-  "平山电厂",
-  "石洞口电厂",
-  "外高桥电厂",
-  "吴泾电厂",
-  "漕泾电厂",
 ]);
 
 const isDraggableDisabled = ref(true);
@@ -217,9 +220,20 @@ onMounted( async() => {
   //   console.log("加载电厂列表");
     
   // }, 500);
-  let res = await api.nox_company();
-    console.log("res……", res);
+  await loadPlantList();
 });
+
+
+const loadPlantList =  async () => {
+  let res = await api.nox_company();
+    // console.log("res……", res);
+    if(res.code == 200)
+    {
+      res.data.forEach(ele => {
+        plants.value.push({dictCode:ele.dictCode,dictLabel:ele.dictLabel,dictValue:ele.dictValue});
+      });
+    }
+};
 
 // 加载电厂数据
 const loadPlantData = () => {
@@ -241,27 +255,18 @@ const loadPlantData = () => {
 };
 
 const generateMockData = () => {
-  // 生成模拟数据
-  // const mockData = [];
-  // for (let i = 0; i < 50; i++) {
-  //   const row = {};
-  //   tableHeaders.value.forEach((header, index) => {
-  //     row[`col${index}`] = `${header}数据${i + 1}`;
-  //   });
-  //   mockData.push(row);
-  // }
-
-  // plantData.value = mockData;
   plantData.value = tableHeaders.value.map((item, index) => ({
     id: index + 1,
     name: item,
+    active: true,
   }));
 
   editablePlantData.value = tableHeaders.value.map((item, index) => ({
     id: index + 1,
     name: item,
     editing: false, 
-    editName: ''
+    editName: '',
+    active: true,
   }));
 
   setTimeout(() => {
@@ -494,7 +499,7 @@ h2 {
 .draggable-item-disabled {
   display: flex;
   align-items: center;
-  padding: 12px 15px;
+  padding: 8px 15px;
   margin: 5px 0;
   background-color: #fff;
   border: 1px solid #ebeef5;
@@ -513,9 +518,9 @@ h2 {
 }
 
 .item-index {
-  margin-right: 10px;
+  margin-right: 0px;
   color: #606266;
-  min-width: 30px;
+  min-width: 20px;
 }
 
 .item-name {
