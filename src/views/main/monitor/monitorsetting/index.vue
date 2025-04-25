@@ -182,25 +182,6 @@ const selectedPlant = ref("");
 
 // 模拟电厂业务数据
 const tableHeaders = ref([
-  "二氧化氮入口浓度(6%氧量)",
-  "炉膛出口烟气氧量平均值",
-  "3#机组反应器L进出口烟气差压",
-  "3#机组反应器R进出口烟气差压",
-  "3#机组反应器入口02含量",
-  "3#机组反应器入口烟气流量(皮托管)",
-  "LDC发电机实发功率",
-  "Axyz",
-  "Aklm",
-  "Anop",
-  "Aqrs",
-  "Atuv",
-  "Awxy",
-  "Azab",
-  "Acde",
-  "Afgh",
-  "Aijk",
-  "Almn",
-
 ]);
 
 const plantData = ref([]);
@@ -226,52 +207,59 @@ onMounted( async() => {
 
 const loadPlantList =  async () => {
   let res = await api.nox_company();
-    // console.log("res……", res);
+  // console.log("loadPlantList……", res);
     if(res.code == 200)
     {
-      res.data.forEach(ele => {
-        plants.value.push({dictCode:ele.dictCode,dictLabel:ele.dictLabel,dictValue:ele.dictValue});
-      });
+      plants.value = res.data;
     }
 };
+
+const loadcsvmap =  async () => {
+  let res = await api.csvmap({company:selectedPlant.value});
+  // console.log("loadcsvmap……", res);
+    if(res.code == 200)
+    {
+      tableHeaders.value = res.data;
+    }
+};
+
+
+
+const selectedPlantLabel = computed(() => {
+  const found = plants.value.find(plant => plant.dictValue === selectedPlant.value);
+  return found ? found.dictLabel : '';
+});
 
 // 加载电厂数据
 const loadPlantData = () => {
   if (!selectedPlant.value) return;
-
-  loading.value = true;
-  progress.value = 0;
-  loadingText.value = `正在加载 ${selectedPlant.value} 的数据...`;
-
-  // 模拟加载进度
-  const interval = setInterval(() => {
-    progress.value += Math.floor(Math.random() * 10) + 5;
-    if (progress.value >= 100) {
-      clearInterval(interval);
-      progress.value = 100;
-      generateMockData();
-    }
-  }, 200);
+  generateData();
 };
 
-const generateMockData = () => {
+const generateData = async () => {
+  await loadcsvmap();
+  console.log("tableHeaders.value……", tableHeaders.value);
   plantData.value = tableHeaders.value.map((item, index) => ({
-    id: index + 1,
-    name: item,
-    active: true,
+    name: item.colName,
+    active: item.status.toString() == '1' ? true: false,
   }));
 
   editablePlantData.value = tableHeaders.value.map((item, index) => ({
-    id: index + 1,
-    name: item,
+    id: item.id,
+    name: item.colName,
+    col: item.col,
     editing: false, 
     editName: '',
-    active: true,
+    active: item.status.toString() == '1' ? true: false,
+    sort: item.sort,
+    company: item.company,
+    type: item.type,
+    status: item.status,
   }));
 
   setTimeout(() => {
     loading.value = false;
-    ElMessage.success(`成功加载 ${selectedPlant.value} 的数据`);
+    ElMessage.success(`成功加载 ${selectedPlantLabel.value} 的数据`);
   }, 500);
 };
 
@@ -383,33 +371,49 @@ const confirmChanges = async () => {
       type: "warning",
     });
 
-    loading.value = true;
-    progress.value = 0;
-    progressStatus.value = "";
-    loadingText.value = "正在保存数据...";
+    // loading.value = true;
+    // progress.value = 0;
+    // progressStatus.value = "";
+    // loadingText.value = "正在保存数据...";
+
+    editablePlantData.value = editablePlantData.value.map((item, index) => ({
+      id: item.id,
+      colName: item.name,
+      col: item.col,
+      active: item.active,
+      sort: index + 1,
+      company: item.company,
+      type: item.type,
+      status: item.active ? '1' : '0',
+    }));
+    let res = await api.csvmapall(editablePlantData.value);
+    if(res.code == 200)
+    {
+      generateData();
+    }
 
     // 模拟保存进度
-    const interval = setInterval(() => {
-      progress.value += Math.floor(Math.random() * 10) + 5;
-      if (progress.value >= 100) {
-        clearInterval(interval);
-        progress.value = 100;
-        progressStatus.value = "success";
-        loadingText.value = "保存成功!";
+    // const interval = setInterval(() => {
+    //   progress.value += Math.floor(Math.random() * 10) + 5;
+    //   if (progress.value >= 100) {
+    //     clearInterval(interval);
+    //     progress.value = 100;
+    //     progressStatus.value = "success";
+    //     loadingText.value = "保存成功!";
 
-        setTimeout(() => {
-          console.log("保存数据:", {
-            originalData: plantData.value,
-            editableData: editablePlantData.value,
-          });
+    //     setTimeout(() => {
+    //       console.log("保存数据:", {
+    //         originalData: plantData.value,
+    //         editableData: editablePlantData.value,
+    //       });
 
-          loading.value = false;
-          ElMessage.success("保存成功");
-        }, 1000);
-      }
-    }, 200);
+    //       loading.value = false;
+    //       ElMessage.success("保存成功");
+    //     }, 1000);
+    //   }
+    // }, 200);
   } catch (err) {
-    console.log("取消保存");
+    console.log("取消保存",err);
   }
 };
 
@@ -419,11 +423,13 @@ const onDragEnd = () => {
   console.log("新顺序:", editablePlantData.value);
   // 这里可以添加保存顺序的逻辑
 };
+
+
 </script>
 
 <style scoped>
 .container {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
   padding: 20px;
   font-family: "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB",

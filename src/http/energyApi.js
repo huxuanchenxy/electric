@@ -5,5 +5,13 @@ let ApiUrl = GetServiceUrl();
 export default {
     nox_company: (params) => {
         return http.get(ApiUrl + '/system/dict/data/type/nox_company', params).then((res) => res);
-    }
+    },
+    csvmap: (params) => {
+        return http.get(ApiUrl + '/csvmap', params).then((res) => res);
+    },
+    csvmapall: (params) => {
+        return http.post(ApiUrl + '/csvmap/all', params).then((res) => res);
+    },
+    
+    
 };
