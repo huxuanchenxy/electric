@@ -231,14 +231,14 @@ const selectedPlantLabel = computed(() => {
 });
 
 // 加载电厂数据
-const loadPlantData = () => {
+const loadPlantData = async() => {
   if (!selectedPlant.value) return;
-  generateData();
+  await generateData();
+  ElMessage.success(`成功加载 ${selectedPlantLabel.value} 的数据`);
 };
 
 const generateData = async () => {
   await loadcsvmap();
-  console.log("tableHeaders.value……", tableHeaders.value);
   plantData.value = tableHeaders.value.map((item, index) => ({
     name: item.colName,
     active: item.status.toString() == '1' ? true: false,
@@ -257,10 +257,6 @@ const generateData = async () => {
     status: item.status,
   }));
 
-  setTimeout(() => {
-    loading.value = false;
-    ElMessage.success(`成功加载 ${selectedPlantLabel.value} 的数据`);
-  }, 500);
 };
 
 // 开始编辑
@@ -389,29 +385,10 @@ const confirmChanges = async () => {
     let res = await api.csvmapall(editablePlantData.value);
     if(res.code == 200)
     {
+      ElMessage.success(`成功保存 ${selectedPlantLabel.value} 的数据`);
       generateData();
     }
 
-    // 模拟保存进度
-    // const interval = setInterval(() => {
-    //   progress.value += Math.floor(Math.random() * 10) + 5;
-    //   if (progress.value >= 100) {
-    //     clearInterval(interval);
-    //     progress.value = 100;
-    //     progressStatus.value = "success";
-    //     loadingText.value = "保存成功!";
-
-    //     setTimeout(() => {
-    //       console.log("保存数据:", {
-    //         originalData: plantData.value,
-    //         editableData: editablePlantData.value,
-    //       });
-
-    //       loading.value = false;
-    //       ElMessage.success("保存成功");
-    //     }, 1000);
-    //   }
-    // }, 200);
   } catch (err) {
     console.log("取消保存",err);
   }
@@ -420,7 +397,7 @@ const confirmChanges = async () => {
 
 // 拖拽结束事件
 const onDragEnd = () => {
-  console.log("新顺序:", editablePlantData.value);
+  // console.log("新顺序:", editablePlantData.value);
   // 这里可以添加保存顺序的逻辑
 };
 

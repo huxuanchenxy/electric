@@ -1,7 +1,6 @@
 import instance from "./index.js";
 
 const post = (url, data) => {
-  console.log("post", url, data);
   return new Promise((resolve, reject) => {
     instance
       .post(url, data)
@@ -50,6 +49,7 @@ const del = (url, data) => {
       });
   });
 };
+
 
 export default {
   post,
