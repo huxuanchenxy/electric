@@ -1,5 +1,6 @@
 let baseUrl = staticConfig.baseUrl;
 const GetServiceUrl = () => {
+  // console.log("baseUrl", baseUrl);
   let serviceUrl = "";
   if (import.meta.env.VITE_IsMock !== "1") {
     if (baseUrl !== "") {

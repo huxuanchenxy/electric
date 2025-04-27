@@ -12,6 +12,7 @@ export default {
     csvmapall: (params) => {
         return http.post(ApiUrl + '/csvmap/all', params).then((res) => res);
     },
-    
-    
+    toCsv: (params) => {
+        return http.post(ApiUrl + '/noxao/toCsv', params).then((res) => res);
+    },
 };

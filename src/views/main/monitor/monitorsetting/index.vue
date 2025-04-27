@@ -27,13 +27,13 @@
 
     <!-- 下拉选择电厂 -->
     <div class="select-area">
+      <span>电厂：</span>
       <el-select
         v-model="selectedPlant"
         placeholder="请选择发电厂"
         @change="loadPlantData"
         clearable
         filterable
-        style="width: 300px"
       >
         <el-option
           v-for="plant in plants"
@@ -42,6 +42,32 @@
           :value="plant.dictValue"
         />
       </el-select>
+      <span>时间范围：</span>
+      <el-date-picker
+        v-model="eldatetime"
+        type="datetimerange"
+        :shortcuts="shortcuts"
+        range-separator="至"
+        start-placeholder="开始日期"
+        end-placeholder="结束日期"
+        style="width: 100%; max-width: 360px;"
+        align="right">
+      </el-date-picker>
+      <span>时间跨度(s)：</span>
+      <el-input
+        class="duration-input"
+        v-model="durationSecond"
+        placeholder="Enter duration in seconds"
+        type="number"
+      />
+    </div>
+    <div class="select-area">
+      <span class="promptspan">文件路径：</span>
+      <el-input
+        v-model="path"
+        placeholder="请输入服务器文件路径"
+        type="text"
+      />
     </div>
 
     <div class="content-area">
@@ -60,7 +86,7 @@
             <template #item="{ element, index }">
               <div class="draggable-item-disabled">
                 <span class="item-index">{{ index + 1 }}.</span>
-                <span class="item-name">{{ element.name }}</span>
+                <span class="item-name">{{ element.name }}({{element.no}})</span>
                 <el-switch
                     v-model="element.active"
                     disabled
@@ -91,7 +117,7 @@
                 
                 <!-- 显示模式 -->
                 <span v-if="!element.editing" class="item-name">
-                  {{ element.name }}
+                  {{ element.name }}({{element.no}})
                 </span>
                 
                 <!-- 编辑模式 -->
@@ -177,6 +203,8 @@ import api from "@/http/energyApi.js";
 const plants = ref([
 ]);
 
+const durationSecond = ref(105);
+const path = ref("");
 const isDraggableDisabled = ref(true);
 const selectedPlant = ref("");
 
@@ -211,6 +239,9 @@ const loadPlantList =  async () => {
     if(res.code == 200)
     {
       plants.value = res.data;
+    }else
+    {
+      ElMessage.error('nox_company:' + res.msg);
     }
 };
 
@@ -220,6 +251,10 @@ const loadcsvmap =  async () => {
     if(res.code == 200)
     {
       tableHeaders.value = res.data;
+      ElMessage.success(`成功加载 ${selectedPlantLabel.value} 的数据`);
+    }else
+    {
+      ElMessage.error('csvmap:' + res.msg);
     }
 };
 
@@ -230,23 +265,47 @@ const selectedPlantLabel = computed(() => {
   return found ? found.dictLabel : '';
 });
 
+const formattedDates = computed(() => {
+  if (!eldatetime.value || eldatetime.value.length !== 2) return null;
+  
+  return {
+    start: formatDate(eldatetime.value[0]),
+    end: formatDate(eldatetime.value[1])
+  };
+});
+
+const formatDate = (date) => {
+  if (!date) return '';
+  const pad = (num) => num.toString().padStart(2, '0');
+  
+  const year = date.getFullYear();
+  const month = pad(date.getMonth() + 1);
+  const day = pad(date.getDate());
+  const hours = pad(date.getHours());
+  const minutes = pad(date.getMinutes());
+  const seconds = pad(date.getSeconds());
+  
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+};
+
 // 加载电厂数据
 const loadPlantData = async() => {
   if (!selectedPlant.value) return;
   await generateData();
-  ElMessage.success(`成功加载 ${selectedPlantLabel.value} 的数据`);
 };
 
 const generateData = async () => {
   await loadcsvmap();
   plantData.value = tableHeaders.value.map((item, index) => ({
     name: item.colName,
+    no:item.no,
     active: item.status.toString() == '1' ? true: false,
   }));
 
   editablePlantData.value = tableHeaders.value.map((item, index) => ({
     id: item.id,
     name: item.colName,
+    no:item.no,
     col: item.col,
     editing: false, 
     editName: '',
@@ -323,34 +382,52 @@ const exportCSV = async () => {
     ElMessage.warning("请先选择发电厂");
     return;
   }
+  if (!eldatetime.value) {
+    ElMessage.warning("请选择开始和结束时间");
+    return;
+  }
 
-  exportLoading.value = true;
-  loading.value = true;
-  progress.value = 0;
-  progressStatus.value = "";
-  loadingText.value = "正在准备导出数据...";
+  let res = await api.toCsv({
+    company: selectedPlant.value,
+    startTime: formattedDates.value.start,
+    endTime: formattedDates.value.end,
+    durationSecond: durationSecond.value,
+    path: path.value,
+  });
+  if(res.code == 200)
+  {
+    ElMessage.success(`操作成功，文件较大，请耐心等待...`);
+  }else
+  {
+    ElMessage.error('toCsv:' + res.msg);
+  }
+  // exportLoading.value = true;
+  // loading.value = true;
+  // progress.value = 0;
+  // progressStatus.value = "";
+  // loadingText.value = "正在准备导出数据...";
 
-  // 模拟导出进度
-  const interval = setInterval(() => {
-    progress.value += Math.floor(Math.random() * 5) + 1;
-    if (progress.value >= 100) {
-      clearInterval(interval);
-      progress.value = 100;
-      progressStatus.value = "success";
-      loadingText.value = "导出完成!";
+  // // 模拟导出进度
+  // const interval = setInterval(() => {
+  //   progress.value += Math.floor(Math.random() * 5) + 1;
+  //   if (progress.value >= 100) {
+  //     clearInterval(interval);
+  //     progress.value = 100;
+  //     progressStatus.value = "success";
+  //     loadingText.value = "导出完成!";
 
-      setTimeout(() => {
-        console.log("导出数据:", {
-          originalData: plantData.value,
-          editableData: editablePlantData.value,
-        });
+  //     setTimeout(() => {
+  //       console.log("导出数据:", {
+  //         originalData: plantData.value,
+  //         editableData: editablePlantData.value,
+  //       });
 
-        exportLoading.value = false;
-        loading.value = false;
-        ElMessage.success("导出成功");
-      }, 1000);
-    }
-  }, 100);
+  //       exportLoading.value = false;
+  //       loading.value = false;
+  //       ElMessage.success("导出成功");
+  //     }, 1000);
+  //   }
+  // }, 100);
 };
 
 // 确认更改
@@ -402,6 +479,38 @@ const onDragEnd = () => {
 };
 
 
+const shortcuts = [
+  {
+    text: '最近一周',
+    value: () => {
+      const end = new Date();
+      const start = new Date();
+      start.setTime(start.getTime() - 3600 * 1000 * 24 * 7);
+      return [start, end];
+    },
+  },
+  {
+    text: '最近一个月',
+    value: () => {
+      const end = new Date();
+      const start = new Date();
+      start.setTime(start.getTime() - 3600 * 1000 * 24 * 30);
+      return [start, end];
+    },
+  },
+  {
+    text: '最近三个月',
+    value: () => {
+      const end = new Date();
+      const start = new Date();
+      start.setTime(start.getTime() - 3600 * 1000 * 24 * 90);
+      return [start, end];
+    },
+  },
+];
+
+const value1 = ref([new Date(2000, 10, 10, 10, 10), new Date(2000, 10, 11, 10, 10)]);
+const eldatetime = ref('');
 </script>
 
 <style scoped>
@@ -423,10 +532,33 @@ h2 {
   margin: 0;
 }
 
-.select-area {
+/* .select-area {
   margin: 20px 0;
+} */
+
+.select-area {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-top: 10px;
 }
 
+.select-area .promptspan
+{
+  width: 100px;
+}
+
+/* .select-area .el-date-picker {
+  flex: 1;
+} */
+
+.select-area .duration-input {
+  width: 100px;
+}
+
+.select-area .el-select {
+  width: 150px;
+}
 .content-area {
   display: flex;
   gap: 20px;
