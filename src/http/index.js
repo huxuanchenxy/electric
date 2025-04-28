@@ -7,10 +7,10 @@ import { GetServiceUrl } from "./baseUrl";
 // 创建一个 axios 实例
 const instance = axios.create({
   baseURL: GetServiceUrl(), // 所有的请求地址前缀部分 比如/Api
-  timeout: 60000, // 请求超时时间毫秒
+  timeout: 3600000, // 请求超时时间毫秒
   //withCredentials: true, // 异步请求携带cookie
   // headers: {
-  //     // 设置后端需要的传参类型
+  //     // 设置后端需要的传参类
   //     'Content-Type': 'application/json',
   //     'token': 'your token',
   //     'X-Requested-With': 'XMLHttpRequest',
@@ -33,6 +33,7 @@ instance.interceptors.request.use(
   function (error) {
     // 对请求错误做些什么
     console.log(error);
+    cancelLoading();
     return Promise.reject(error);
   }
 );

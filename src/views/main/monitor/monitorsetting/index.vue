@@ -251,7 +251,6 @@ const loadcsvmap =  async () => {
     if(res.code == 200)
     {
       tableHeaders.value = res.data;
-      ElMessage.success(`成功加载 ${selectedPlantLabel.value} 的数据`);
     }else
     {
       ElMessage.error('csvmap:' + res.msg);
@@ -292,6 +291,7 @@ const formatDate = (date) => {
 const loadPlantData = async() => {
   if (!selectedPlant.value) return;
   await generateData();
+  ElMessage.success(`成功加载 ${selectedPlantLabel.value} 的数据`);
 };
 
 const generateData = async () => {
@@ -339,12 +339,20 @@ const cancelEdit = (item) => {
   item.editing = false
 }
 // 导入CSV
-const importCSV = () => {
+const importCSV = async () => {
   if (!selectedPlant.value) {
     ElMessage.warning("请先选择发电厂");
     return;
   }
-  fileInput.value.click();
+  // fileInput.value.click();
+  let res = await api.noxaoadd({company:selectedPlant.value});
+  if(res.code == 200)
+  {
+    ElMessage.success(`操作成功，文件较大，请耐心等待...`);
+  }else
+  {
+    ElMessage.error('noxaoadd:' + res.msg);
+  }
 };
 
 const handleFileUpload = async (event) => {

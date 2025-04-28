@@ -15,4 +15,7 @@ export default {
     toCsv: (params) => {
         return http.post(ApiUrl + '/noxao/toCsv', params).then((res) => res);
     },
+    noxaoadd: (params) => {
+        return http.post(ApiUrl + '/noxao/add', params).then((res) => res);
+    },
 };
